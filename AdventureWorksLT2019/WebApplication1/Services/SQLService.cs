@@ -29,13 +29,18 @@ namespace AWExplore.Services
             {
                 com.Parameters.Add(param);
             }
-
-            conn.Open();
-            var dt = new DataTable();
-            dt.Load(com.ExecuteReader());
-            conn.Close();
-
-            return dt;
+            try
+            {
+                if (conn.State != ConnectionState.Open)
+                    conn.Open();
+                var dt = new DataTable();
+                dt.Load(com.ExecuteReader());
+                return dt;
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
     }
 }

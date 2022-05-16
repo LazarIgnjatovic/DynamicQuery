@@ -33,6 +33,7 @@ namespace WebApplication1
             services.AddDbContext<AdventureWorksLT2019Context>();
 
             services.AddScoped<ISQLService, SQLService>();
+            services.AddScoped<IConvertService, ConvertService>();
 
             services.AddCors();
             services.AddControllers();

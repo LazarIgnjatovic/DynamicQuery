@@ -20,11 +20,13 @@ namespace AWExplore
     {
         private readonly ISQLService _sqlService;
         private readonly IDBSettings _dbSettings;
+        private readonly IConvertService _convertService;
 
-        public DBController(IDBSettings dbSettings, ISQLService sqlService)
+        public DBController(IDBSettings dbSettings, ISQLService sqlService,IConvertService convertService)
         {
             _sqlService = sqlService;
             _dbSettings = dbSettings;
+            _convertService = convertService;
         }
         
         [Route("tables")]
@@ -74,6 +76,39 @@ namespace AWExplore
             }
             return fields;
 
+        }
+
+        [Route("query")]
+        [HttpPost]
+        // vidi najbolji nacin da se vrati tabela
+        public string Query([FromBody] List<string> selectedFields)
+        {
+            string query = String.Format(@"SELECT ");
+            if (selectedFields != null)
+            {
+                foreach (string field in selectedFields)
+                {
+                    query += field + ", ";
+                }
+                query = query.Remove(query.Length - 2, 2);
+                query += String.Format(@"
+                                    FROM SalesLT.SalesOrderHeader HE 
+                                    INNER JOIN SalesLT.Customer CUS ON HE.CustomerID=CUS.CustomerID 
+                                    INNER JOIN SalesLT.CustomerAddress CA ON CUS.CustomerID=CA.CustomerID
+                                    INNER JOIN SalesLT.Address ADR ON CA.AddressID=ADR.AddressID
+                                    INNER JOIN SalesLT.SalesOrderDetail DET ON DET.SalesOrderID=HE.SalesOrderID
+                                    INNER JOIN SalesLT.Product PR ON PR.ProductID=DET.ProductID
+                                    INNER JOIN SalesLT.ProductCategory PC ON PC.ProductCategoryID=PR.ProductCategoryID
+                                    INNER JOIN SalesLT.ProductModel PM ON PM.ProductModelID=PR.ProductModelID
+                                    INNER JOIN SalesLT.ProductModelProductDescription PMD ON PMD.ProductModelID =PM.ProductModelID
+                                    INNER JOIN SalesLT.ProductDescription PD ON PD.ProductDescriptionID=PMD.ProductDescriptionID;");
+
+                List<SqlParameter> parameters = new List<SqlParameter>();
+                var queryResult = _sqlService.ExecuteParametrizedQuery(query, _dbSettings, parameters);
+                return _convertService.DataTableToJSONWithStringBuilder(queryResult);
+            }
+            Console.WriteLine("nothing sent!");
+            return null;
         }
     }
 }

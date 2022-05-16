@@ -19,17 +19,19 @@
     </div>
     <div class="query-section" id="group">
         <h3>Group content by:</h3>
+        <select class="select2" id="group_fields" name="fields[]" multiple="multiple" style="width: 50%"></select>
     </div>
     <div class="query-section" id="order">
         <h3>Sort by:</h3>
+        <select class="select2" id="sort_fields" name="fields[]" multiple="multiple" style="width: 50%"></select>
     </div>
     <div class="query-section" id="fields">
         <h3>Select fields:</h3>
         <select class="select2" id="sel_fields" name="fields[]" multiple="multiple" style="width: 50%">
         </select>
     </div>
-
-
+    </br>
+    <button id="queryBtn" onclick=query()>Query</button>
 
     <script src="script.js"></script>
 </body>
