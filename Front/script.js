@@ -1,6 +1,7 @@
 $(document).ready(init())
 
 $.postJSON = function(url, data, callback) {
+    console.log(JSON.stringify(data))
     return jQuery.ajax({
     headers: { 
         'Accept': 'application/json',
@@ -26,6 +27,57 @@ function init()
     $('#sort_fields').select2({
         width:'resolve'
     });
+
+    whereSetup()
+}
+
+function whereSetup()
+{
+    var ind=0
+    jQuery('<div>', {
+        id: 'cond_'+ind,
+        class: 'condition.initial',
+    }).appendTo('#where');
+    
+
+    $("#cond_"+ind).append('<select id="field_'+ind+'" name="field_'+ind+'" style="width: 15%"></select>')
+    $("#cond_"+ind).append('<select id="operator_'+ind+'" name="operator_'+ind+'" style="width: 15%"></select>')
+    $("#cond_"+ind).append('<select id="input_'+ind+'" name="input_'+ind+'" style="width: 15%"></select>')
+    $("#cond_"+ind).append('<button id="btn_add_'+ind+'" name="btn_add_'+ind+'" > Add </button>')
+    $("#cond_"+ind).append('<button id="btn_rm_'+ind+'" name="btn_rm_'+ind+'"> Remove </button>')
+    $("#btn_add_"+ind).click(function() {
+        addCondition();
+    });
+    $("#btn_rm_"+ind).click(function() {
+        removeCond();
+    });
+    ind++
+
+    function addCondition()
+    {
+        console.log("click")
+        jQuery('<div>', {
+            id: 'cond_'+ind,
+            class: 'condition.initial',
+        }).appendTo('#where');
+
+        $("#cond_"+ind).append('<select id="field_"+ind name="field_"+ind style="width: 15%"></select>')
+        $("#cond_"+ind).append('<select id="operator_"+ind name="operator_"+ind style="width: 15%"></select>')
+        $("#cond_"+ind).append('<select id="input_"+ind name="input_"+ind style="width: 15%"></select>')
+        ind++
+    }
+
+    function removeCond()
+    {
+        if(ind!=1)
+        {
+            ind--;
+            $("#cond_"+ind).detach();
+            console.log("#cond_"+ind);
+        }
+    }
+
+
 }
 
 function checkTable()
@@ -64,30 +116,15 @@ function setFields()
 
 function query()
 {
-    var sel=$('#sel_fields').select2('val')
-    console.log(sel)
+    var selectedFields=$('#sel_fields').select2('val')
+    var groupFields=$('#group_fields').select2('val')
+    var orderFields=$('#sort_fields').select2('val')
+    var isAscending=$('#chk_asc').is(':checked');
     $.postJSON('http://localhost:5000/DB/query',   // url
-       sel, // data to be submit
+       {selectedFields,groupFields,orderFields,isAscending}, // data to be submit
        function(data, status, jqXHR) {// success callback
                 console.log(data);
         });
     
-/*
-    $.ajax({
-        type: "POST",
-        url: "http://localhost:5000/DB/query",
-        data: JSON.stringify({
-            selectedFields: sel
-        }),
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        success: function(data) {
-            if (data.status == 'OK')
-                console.log(data);
-            else
-            alert('Failed adding person: ' + data.status + ', ' + data.errorMessage);
-    }});*/
 }
 

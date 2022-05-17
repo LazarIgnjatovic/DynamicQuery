@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     /// <summary>
     /// Product names and descriptions. Product descriptions are provided in multiple languages.

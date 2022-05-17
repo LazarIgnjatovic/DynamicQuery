@@ -4,6 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using AWExplore.Config;
+using AWExplore.DTO;
+using AWExplore.Models;
 using AWExplore.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -49,7 +51,7 @@ namespace AWExplore
                     tables.Add(queryResult.Rows[i]["TableName"].ToString());
                 }
             }
-            return tables;
+            return _convertService.ConvertTableToAlias(tables);
         }
 
         [Route("fieldsFrom/{table}")]
@@ -74,34 +76,77 @@ namespace AWExplore
                     fields.Add(queryResult.Rows[i]["ColumnName"].ToString());
                 }
             }
-            return fields;
-
+            return _convertService.ConvertColumnToAlias(fields);
         }
 
         [Route("query")]
         [HttpPost]
         // vidi najbolji nacin da se vrati tabela
-        public string Query([FromBody] List<string> selectedFields)
+        public string Query([FromBody] QueryDTO q)
         {
-            string query = String.Format(@"SELECT ");
-            if (selectedFields != null)
+            if (q.SelectedFields != null && q.SelectedFields.Count>0)
             {
-                foreach (string field in selectedFields)
+                //SELECT
+                string query = String.Format(@"SELECT ");
+                List<Alias> selAliases=_convertService.FindFromColumnAliases(q.SelectedFields);
+                List<Alias> orderAliases = _convertService.FindFromColumnAliases(q.OrderFields);
+                foreach (Alias field in selAliases)
                 {
-                    query += field + ", ";
+                    query += field.TableAbbr+"."+field.ColumnName + ", ";
                 }
                 query = query.Remove(query.Length - 2, 2);
+
+                //FROM
                 query += String.Format(@"
-                                    FROM SalesLT.SalesOrderHeader HE 
-                                    INNER JOIN SalesLT.Customer CUS ON HE.CustomerID=CUS.CustomerID 
-                                    INNER JOIN SalesLT.CustomerAddress CA ON CUS.CustomerID=CA.CustomerID
-                                    INNER JOIN SalesLT.Address ADR ON CA.AddressID=ADR.AddressID
-                                    INNER JOIN SalesLT.SalesOrderDetail DET ON DET.SalesOrderID=HE.SalesOrderID
-                                    INNER JOIN SalesLT.Product PR ON PR.ProductID=DET.ProductID
+                                    FROM SalesLT.SalesOrderHeader SH 
+                                    INNER JOIN SalesLT.Customer CU ON SH.CustomerID=CU.CustomerID 
+                                    INNER JOIN SalesLT.CustomerAddress CA ON CU.CustomerID=CA.CustomerID
+                                    INNER JOIN SalesLT.Address AD ON CA.AddressID=AD.AddressID
+                                    INNER JOIN SalesLT.SalesOrderDetail SD ON SD.SalesOrderID=SH.SalesOrderID
+                                    INNER JOIN SalesLT.Product PR ON PR.ProductID=SD.ProductID
                                     INNER JOIN SalesLT.ProductCategory PC ON PC.ProductCategoryID=PR.ProductCategoryID
                                     INNER JOIN SalesLT.ProductModel PM ON PM.ProductModelID=PR.ProductModelID
                                     INNER JOIN SalesLT.ProductModelProductDescription PMD ON PMD.ProductModelID =PM.ProductModelID
-                                    INNER JOIN SalesLT.ProductDescription PD ON PD.ProductDescriptionID=PMD.ProductDescriptionID;");
+                                    INNER JOIN SalesLT.ProductDescription PD ON PD.ProductDescriptionID=PMD.ProductDescriptionID ");
+
+                //WHERE
+                //GROUP BY
+                if(q.GroupFields != null && q.GroupFields.Count>0)
+                {
+                    query += " GROUP BY ";
+                    List<Alias> groupAliases = _convertService.FindFromColumnAliases(q.GroupFields);
+                    foreach(Alias field in selAliases)
+                    {
+                        if(!groupAliases.Contains(field))
+                            groupAliases.Add(field);
+                    }
+                    foreach (Alias field in orderAliases)
+                    {
+                        if (!groupAliases.Contains(field))
+                            groupAliases.Add(field);
+                    }
+                    foreach (Alias field in groupAliases)
+                    {
+                        query += field.TableAbbr + "." + field.ColumnName + ", ";
+                    }
+                    query = query.Remove(query.Length - 2, 2);
+                }
+                //HAVING
+                //ORDER BY
+                if(q.OrderFields!=null && q.OrderFields.Count>0)
+                {
+                    query += " ORDER BY ";
+                    foreach (Alias field in orderAliases)
+                    {
+                        query += field.TableAbbr + "." + field.ColumnName + ", ";
+                    }
+                    query = query.Remove(query.Length - 2, 2);
+
+                    if(q.IsAscending)
+                        query += " ASC ";
+                    else
+                        query += " DESC ";
+                }
 
                 List<SqlParameter> parameters = new List<SqlParameter>();
                 var queryResult = _sqlService.ExecuteParametrizedQuery(query, _dbSettings, parameters);

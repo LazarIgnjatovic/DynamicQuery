@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     /// <summary>
     /// Cross-reference table mapping product descriptions and the language the description is written in.

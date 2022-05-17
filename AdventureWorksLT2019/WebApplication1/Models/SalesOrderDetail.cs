@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     /// <summary>
     /// Individual products associated with a specific sales order. See SalesOrderHeader.

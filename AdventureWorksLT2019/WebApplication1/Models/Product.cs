@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     /// <summary>
     /// Products sold or used in the manfacturing of sold products.

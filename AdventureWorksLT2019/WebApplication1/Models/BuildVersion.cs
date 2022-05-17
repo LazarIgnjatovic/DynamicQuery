@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     /// <summary>
     /// Current version number of the AdventureWorksLT 2012 sample database. 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace WebApplication1.Models
+namespace AWExplore.Models
 {
     public partial class AdventureWorksLT2019Context : DbContext
     {
@@ -17,6 +17,7 @@ namespace WebApplication1.Models
         }
 
         public virtual DbSet<Address> Addresses { get; set; }
+        public virtual DbSet<Alias> Aliases { get; set; }
         public virtual DbSet<BuildVersion> BuildVersions { get; set; }
         public virtual DbSet<Customer> Customers { get; set; }
         public virtual DbSet<CustomerAddress> CustomerAddresses { get; set; }
@@ -36,6 +37,7 @@ namespace WebApplication1.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
                 optionsBuilder.UseSqlServer("Server=.\\;Database=AdventureWorksLT2019;Trusted_Connection=True;");
             }
         }
@@ -96,6 +98,34 @@ namespace WebApplication1.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .HasComment("Name of state or province.");
+            });
+
+            modelBuilder.Entity<Alias>(entity =>
+            {
+                entity.ToTable("Alias", "SalesLT");
+
+                entity.Property(e => e.AliasId).HasColumnName("AliasID");
+
+                entity.Property(e => e.ColumnAlias)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ColumnName)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TableAbbr)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TableAlias)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TableName)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<BuildVersion>(entity =>
