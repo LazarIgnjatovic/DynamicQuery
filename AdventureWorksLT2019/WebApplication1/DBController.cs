@@ -155,5 +155,35 @@ namespace AWExplore
             Console.WriteLine("nothing sent!");
             return null;
         }
+
+        [Route("alias")]
+        [HttpGet]
+        public string GetAlias()
+        {
+            string query = String.Format(@"SELECT *
+                                        FROM SalesLT.Alias;"
+                                        , _dbSettings.Schema);
+            var queryResult = _sqlService.ExecuteQuery(query, _dbSettings);
+            return _convertService.DataTableToJSONWithStringBuilderUnaliased(queryResult);
+        }
+
+        [Route("updateAlias")]
+        [HttpPost]
+        public IActionResult UpdateAlias([FromBody] AliasUpdateDTO data)
+        {
+            string query = String.Format(@"UPDATE SalesLT.Alias
+                                              SET TableAbbr=@tableAbbr,TableAlias=@tableAlias,TableIgnore=@tableIgnore,ColumnAlias=@columnAlias,ColumnIgnore=@columnIgnore
+                                              WHERE AliasID = @ID");
+            List<SqlParameter> parameters = new List<SqlParameter>();
+            parameters.Add(new SqlParameter("tableAbbr", data.TableAbbr));
+            parameters.Add(new SqlParameter("tableAlias", data.TableAlias));
+            parameters.Add(new SqlParameter("tableIgnore", data.TableIgnore));
+            parameters.Add(new SqlParameter("columnAlias", data.ColumnAlias));
+            parameters.Add(new SqlParameter("columnIgnore", data.ColumnIgnore));
+            parameters.Add(new SqlParameter("ID", data.Id));
+
+            var queryResult = _sqlService.ExecuteParametrizedQuery(query, _dbSettings, parameters);
+            return Ok();
+        }
     }
 }

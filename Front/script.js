@@ -1,7 +1,7 @@
 $(document).ready(init())
+var ind;
 
 $.postJSON = function(url, data, callback) {
-    console.log(JSON.stringify(data))
     return jQuery.ajax({
     headers: { 
         'Accept': 'application/json',
@@ -33,7 +33,8 @@ function init()
 
 function whereSetup()
 {
-    var ind=0
+    ind=0;
+    console.log(ind);
     jQuery('<div>', {
         id: 'cond_'+ind,
         class: 'condition.initial',
@@ -41,42 +42,61 @@ function whereSetup()
     
 
     $("#cond_"+ind).append('<select id="field_'+ind+'" name="field_'+ind+'" style="width: 15%"></select>')
-    $("#cond_"+ind).append('<select id="operator_'+ind+'" name="operator_'+ind+'" style="width: 15%"></select>')
-    $("#cond_"+ind).append('<select id="input_'+ind+'" name="input_'+ind+'" style="width: 15%"></select>')
+    $("#cond_"+ind).append('<label> IN </label')
+    $("#cond_"+ind).append('<select class="select2" id="input_'+ind+'" name="input_'+ind+'" multiple="multiple" style="width: 30%"></select>')
     $("#cond_"+ind).append('<button id="btn_add_'+ind+'" name="btn_add_'+ind+'" > Add </button>')
     $("#cond_"+ind).append('<button id="btn_rm_'+ind+'" name="btn_rm_'+ind+'"> Remove </button>')
+    $("#cond_"+ind).append('</br>')
+    
+    $('#input_'+ind).select2({
+        width:'resolve'
+    });
+
+    $("#field_"+ind).change(function(e){
+        fieldSelected($("#"+e.target.id).val());
+    })
+    
     $("#btn_add_"+ind).click(function() {
         addCondition();
     });
     $("#btn_rm_"+ind).click(function() {
         removeCond();
     });
+
     ind++
+
+    function fieldSelected(opt)
+    {
+        console.log(opt);
+    }
 
     function addCondition()
     {
-        console.log("click")
         jQuery('<div>', {
             id: 'cond_'+ind,
             class: 'condition.initial',
         }).appendTo('#where');
 
-        $("#cond_"+ind).append('<select id="field_"+ind name="field_"+ind style="width: 15%"></select>')
-        $("#cond_"+ind).append('<select id="operator_"+ind name="operator_"+ind style="width: 15%"></select>')
-        $("#cond_"+ind).append('<select id="input_"+ind name="input_"+ind style="width: 15%"></select>')
+        $("#cond_"+ind).append('<select id="field_'+ind+'" name="field_'+ind+'" style="width: 15%"></select>')
+        $("#cond_"+ind).append('<label> IN </label')
+        $("#cond_"+ind).append('<select class="select2" id="input_'+ind+'" name="input_'+ind+'" multiple="multiple" style="width: 30%"></select>')
+        
+        $('#input_'+ind).select2({
+            width:'resolve'
+        });
+        console.log(ind);
         ind++
     }
 
     function removeCond()
     {
-        if(ind!=1)
+        if(ind>0)
         {
             ind--;
             $("#cond_"+ind).detach();
-            console.log("#cond_"+ind);
         }
     }
-
+    
 
 }
 
@@ -94,6 +114,14 @@ function checkTable()
                     $('#sel_fields').append(newOption).trigger('change');
                     $('#group_fields').append(newOption1).trigger('change');
                     $('#sort_fields').append(newOption2).trigger('change');
+
+                    for(i=0;i<ind;i++)
+                    {
+                        $('#field_'+i).append($('<option>', {
+                            value: element,
+                            text: element
+                        }));
+                    }
                 });
             });
         });

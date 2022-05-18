@@ -10,5 +10,6 @@ namespace AWExplore.Services
         public List<string> ConvertTableToAlias(List<string> table);
         public List<string> ConvertColumnToAlias(List<string> columns);
         public List<Alias> FindFromColumnAliases(List<string> columnAliases);
+        public string DataTableToJSONWithStringBuilderUnaliased(DataTable table);
     }
 }
