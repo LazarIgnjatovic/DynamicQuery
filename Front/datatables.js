@@ -1,6 +1,6 @@
 $(document).ready(dataSetup())
 
-
+var edited=new Set()
 
 function getAliasTable()
 {
@@ -53,9 +53,20 @@ function getAliasTable()
     });
 }
 
+function dataInputChange(id)
+{
+    edited.add(id);
+}
+
 function dataSetup()
 {
-    $('#example2').DataTable({
+
+    $('#example').on( 'click', 'tbody td:not(:first-child)', function (e) {
+       
+    } );
+
+    var table = $('#example2').DataTable({
+        dom: 'Bfrtip',
         ajax: {
             url: 'http://localhost:5000/DB/alias',
             dataSrc: '',
@@ -63,28 +74,60 @@ function dataSetup()
         columns: [
             { data: 'AliasID' },
             { data: 'TableName' },
-            { data: 'TableAbbr' },
-            { data: 'TableAlias' },
-            { data: 'TableIgnore' },
+            { data: null,
+                render: function(data, type, row) {
+                    return '<input  type="text" placeholder="" value="'+ row.TableAlias +'" id="table_alias'+data.AliasID+'" name="table_Abbr'+data.AliasID+'" onchange="dataInputChange('+ data.AliasID +')" >';
+                     } },
+            { data: null,
+                render: function(data, type, row) {
+                    return '<input  type="text" placeholder="" value="'+ row.TableAbbr +'" id="table_abbr'+data.AliasID+'" name="table_Abbr'+data.AliasID+'" onchange="dataInputChange('+ data.AliasID +')" >';
+                     } },
+            { data: null,
+                render: function(data, type, row) {
+                    return '<input  type="text" placeholder="" value="'+ row.TableIgnore +'" id="table_ignore'+data.AliasID+'" name="table_Abbr'+data.AliasID+'" onchange="dataInputChange('+ data.AliasID +')" >';
+                     } },
             { data: 'ColumnName' },
-            { data: 'ColumnAlias' },
-            { data: 'ColumnIgnore' },
+            { data: null,
+                render: function(data, type, row) {
+                    return '<input  type="text" placeholder="" value="'+ row.ColumnAlias +'" id="column_alias'+data.AliasID+'" name="table_Abbr'+data.AliasID+'" onchange="dataInputChange('+ data.AliasID +')" >';
+                     } },
+            { data: null,
+                render: function(data, type, row) {
+                    return '<input  type="text" placeholder="" value="'+ row.ColumnIgnore +'" id="column_ignore'+data.AliasID+'" name="table_Abbr'+data.AliasID+'" onchange="dataInputChange('+ data.AliasID +')" >';
+                     } },
         ],
+        select:true,
+        buttons: [
+            { name: "save", 
+                text:"SAVE",
+                action: function ( e, dt, node, config ) 
+                {
+                    bulkSave();
+                }
+            },
+        ]
     });
 
+    table.buttons( 0, null ).containers().appendTo( 'body' );
+}
+
+function bulkSave()
+{
+    for (var it = edited.values(), val= null; val=it.next().value; ) {
+        var data=JSON.stringify({
+            Id:val.toString(),
+            TableAbbr:$('#table_abbr'+val).val(),
+            TableAlias:$('#table_alias'+val).val(),
+            TableIgnore:$('#table_ignore'+val).val(),
+            ColumnAlias:$('#column_alias'+val).val(),
+            ColumnIgnore:$('#column_ignore'+val).val(),
+        })
+        updateAlias(data);
+    }
 }
 
 function updateAlias(item)
 {
-    console.log("update");
-    console.log(JSON.stringify({
-                Id:item.AliasID,
-                TableAbbr:$('#TableAbbr_'+item.AliasID).val(),
-                TableAlias:$('#TableAlias_'+item.AliasID).val(),
-                TableIgnore:$('#TableIgnore_'+item.AliasID).val(),
-                ColumnAlias:$('#ColumnAlias_'+item.AliasID).val(),
-                ColumnIgnore:$('#ColumnIgnore_'+item.AliasID).val(),
-            }));
     jQuery.ajax({
         headers: { 
             'Accept': 'application/json',
@@ -92,16 +135,9 @@ function updateAlias(item)
         },
         type: 'POST',
         url: 'http://localhost:5000/DB/updateAlias',
-        data: JSON.stringify({
-                Id:item.AliasID,
-                TableAbbr:$('#TableAbbr_'+item.AliasID).val(),
-                TableAlias:$('#TableAlias_'+item.AliasID).val(),
-                TableIgnore:$('#TableIgnore_'+item.AliasID).val(),
-                ColumnAlias:$('#ColumnAlias_'+item.AliasID).val(),
-                ColumnIgnore:$('#ColumnIgnore_'+item.AliasID).val(),
-            }),
+        data: item,
         dataType: 'JSON',
-        success: function(data, status, jqXHR) {// success callback
+        complete: function() {// success callback
             alert('Saved');
         }
         });
